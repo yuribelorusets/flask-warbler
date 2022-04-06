@@ -32,13 +32,18 @@ connect_db(app)
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
     # ran before every single request, kind of like setup function when testing
-    g.csrf = CSRFProtectForm()
+   
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY]) # user.id stored in here
 
     else:
         g.user = None
 
+@app.before_request
+def add_csrf_to_g():
+    """If we're logged in, add curr user to Flask global."""
+    
+    g.csrf = CSRFProtectForm()
 
 def do_login(user):
     """Log in user."""
@@ -304,6 +309,25 @@ def messages_destroy(message_id):
     db.session.commit()
 
     return redirect(f"/users/{g.user.id}")
+
+@app.post('/messages/<int:message_id>/like')
+def like_message(message_id):
+    """Like a message."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    if not g.user.like_message(g.user.id, message_id):
+        flash("You can't like your own warble!", "danger")
+        return redirect("/")
+
+    like = g.user.like_message(g.user.id, message_id)
+
+    db.session.add(like)
+    db.session.commit()
+
+    return redirect("/")
 
 
 ##############################################################################
