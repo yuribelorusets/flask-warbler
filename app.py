@@ -153,6 +153,18 @@ def users_show(user_id):
     return render_template('users/show.html', user=user)
 
 
+@app.get('/users/<int:user_id>/likes')
+def show_likes(user_id):
+    """Show list of likes for this user."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+
+    return render_template('users/likes.html', user=user)
+
 @app.get('/users/<int:user_id>/following')
 def show_following(user_id):
     """Show list of people this user is following."""
@@ -331,6 +343,24 @@ def like_message(message_id):
 
     flash("Warble liked!", "success")
     return redirect("/")
+
+@app.post('/messages/<int:message_id>/unlike')
+def unlike_message(message_id):
+    """Unlike a message."""
+
+    message = Message.query.get(message_id)
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    like = LikedBy.query.filter(user_id=g.user.id and message_id=message_id).one()
+
+    db.session.delete(like)
+    db.session.commit()
+
+    flash("Warble removed from likes!", "success")
+    return redirect(f"users/{g.user.id}/likes.html")
 
 
 ##############################################################################
