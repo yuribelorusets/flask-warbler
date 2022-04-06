@@ -81,7 +81,7 @@ def signup():
             return render_template('users/signup.html', form=form)
 
         do_login(user)
-       
+
         return redirect("/")
 
     else:
@@ -144,9 +144,11 @@ def list_users():
 def users_show(user_id):
     """Show user profile."""
 
+    CSRF = CSRFProtectForm()
+
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user)
+    return render_template('users/show.html', user=user, form=CSRF)
 
 
 @app.get('/users/<int:user_id>/following')
