@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm, UserUpdateForm
-from models import db, connect_db, User, Message, Follows
+from models import db, connect_db, User, Message, Follows, LikedBy
 
 CURR_USER_KEY = "curr_user"
 
@@ -32,7 +32,7 @@ connect_db(app)
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
     # ran before every single request, kind of like setup function when testing
-   
+
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY]) # user.id stored in here
 
@@ -42,7 +42,7 @@ def add_user_to_g():
 @app.before_request
 def add_csrf_to_g():
     """If we're logged in, add curr user to Flask global."""
-    
+
     g.csrf = CSRFProtectForm()
 
 def do_login(user):
@@ -140,7 +140,7 @@ def list_users():
         users = User.query.all()
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
-   
+
     return render_template('users/index.html', users=users)
 
 
@@ -162,7 +162,7 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-  
+
     return render_template('users/following.html', user=user)
 
 
@@ -175,7 +175,7 @@ def users_followers(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    
+
     return render_template('users/followers.html', user=user)
 
 
@@ -314,11 +314,13 @@ def messages_destroy(message_id):
 def like_message(message_id):
     """Like a message."""
 
+    message = Message.query.get(message_id)
+
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    if not g.user.like_message(g.user.id, message_id):
+    if g.user.id == message.user.id:
         flash("You can't like your own warble!", "danger")
         return redirect("/")
 
@@ -327,6 +329,7 @@ def like_message(message_id):
     db.session.add(like)
     db.session.commit()
 
+    flash("Warble liked!", "success")
     return redirect("/")
 
 

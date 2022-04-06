@@ -5,6 +5,8 @@ from datetime import datetime
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 
+from flask import g
+
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
@@ -114,18 +116,17 @@ class User(db.Model):
     def like_message(cls, user_id, message_id):
         """Like a message"""
 
-        if user_id != g.user.id:
-            like = LikedBy(
-                user_id=user_id,
-                message_id=message_id
-            )
 
-            db.session.add(like)
-            db.session.commit()
+        like = LikedBy(
+            user_id=user_id,
+            message_id=message_id
+        )
 
-            return like
-        
-        return None
+        db.session.add(like)
+        db.session.commit()
+
+        return like
+
 
     @classmethod
     def signup(cls, username, email, password, image_url):
@@ -197,16 +198,6 @@ class Message(db.Model):
     user = db.relationship('User')
 
 
-def connect_db(app):
-    """Connect this database to provided Flask app.
-
-    You should call this in your Flask app.
-    """
-
-    db.app = app
-    db.init_app(app)
-
-
 class LikedBy(db.Model):
     """A warble like made by a user."""
 
@@ -216,12 +207,22 @@ class LikedBy(db.Model):
         db.Integer,
         db.ForeignKey('users.id', ondelete='CASCADE'),
         nullable=False,
-        primary_key=True
+        primary_key=True,
     )
 
     message_id = db.Column(
         db.Integer,
         db.ForeignKey('messages.id', ondelete='CASCADE'),
         nullable=False,
-        primary_key=True
+        primary_key=True,
     )
+
+
+def connect_db(app):
+    """Connect this database to provided Flask app.
+
+    You should call this in your Flask app.
+    """
+
+    db.app = app
+    db.init_app(app)

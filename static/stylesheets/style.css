@@ -471,6 +471,11 @@ p.card-bio {
   text-align: left;
 }
 
+#like-button {
+  position: relative;
+  z-index: 10;
+}
+
 /* ========================== Signup/Login */
 
 #user_form input.form-control {

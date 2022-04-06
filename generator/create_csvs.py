@@ -17,10 +17,12 @@ MAX_WARBLER_LENGTH = 140
 USERS_CSV_HEADERS = ['email', 'username', 'image_url', 'password', 'bio', 'header_image_url', 'location']
 MESSAGES_CSV_HEADERS = ['text', 'timestamp', 'user_id']
 FOLLOWS_CSV_HEADERS = ['user_being_followed_id', 'user_following_id']
+LIKED_CSV_HEADERS = ['user_id', 'message_id']
 
 NUM_USERS = 300
 NUM_MESSAGES = 1000
 NUM_FOLLWERS = 5000
+NUM_LIKES = 3
 
 fake = Faker()
 
@@ -75,3 +77,13 @@ with open('generator/follows.csv', 'w') as follows_csv:
 
     for followed_user, follower in sample(all_pairs, NUM_FOLLWERS):
         users_writer.writerow(dict(user_being_followed_id=followed_user, user_following_id=follower))
+
+with open('generator/liked_by.csv', 'w') as users_csv:
+    likes_writer = csv.DictWriter(users_csv, fieldnames=LIKED_CSV_HEADERS)
+    likes_writer.writeheader()
+
+    for i in range(NUM_LIKES):
+        likes_writer.writerow(dict(
+            user_id=fake.user_id(),
+            message_id=fake.message_id(),
+        ))
