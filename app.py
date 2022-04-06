@@ -136,8 +136,8 @@ def list_users():
         users = User.query.all()
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
-
-    return render_template('users/index.html', users=users)
+    CSRF = CSRFProtectForm()
+    return render_template('users/index.html', users=users, form=CSRF)
 
 
 @app.get('/users/<int:user_id>')
@@ -160,7 +160,8 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user)
+    CSRF = CSRFProtectForm()
+    return render_template('users/following.html', user=user, form=CSRF)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -172,7 +173,8 @@ def users_followers(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/followers.html', user=user)
+    CSRF = CSRFProtectForm()
+    return render_template('users/followers.html', user=user, form=CSRF)
 
 
 @app.post('/users/follow/<int:follow_id>')
