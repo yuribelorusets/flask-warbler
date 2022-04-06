@@ -31,9 +31,10 @@ connect_db(app)
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
+    # ran before every single request, kind of like setup function when testing
 
     if CURR_USER_KEY in session:
-        g.user = User.query.get(session[CURR_USER_KEY])
+        g.user = User.query.get(session[CURR_USER_KEY]) # user.id stored in here
 
     else:
         g.user = None
@@ -214,7 +215,7 @@ def profile():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
     user = User.query.get_or_404(g.user.id)
     form = UserUpdateForm(obj=user)
 
@@ -224,7 +225,7 @@ def profile():
                                  form.password.data)
 
         if user:
-            user.username = form.username.data 
+            user.username = form.username.data
             user.email = form.email.data
             user.image_url = form.image_url.data
             user.header_image_url = form.header_image_url.data
@@ -322,12 +323,18 @@ def homepage():
     """
 
     if g.user:
+        following = Follows.query.filter_by(user_following_id = g.user.id).all()
+        ids = [followed_user.user_being_followed_id for followed_user in following]
+        ids.append(g.user.id)
+
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
         CSRF = CSRFProtectForm()
+
         return render_template('home.html', messages=messages, form=CSRF)
 
     else:
