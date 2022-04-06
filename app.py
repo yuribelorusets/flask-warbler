@@ -323,13 +323,13 @@ def homepage():
     """
 
     if g.user:
-        following = Follows.query.filter_by(user_following_id = g.user.id).all()
-        ids = [followed_user.user_being_followed_id for followed_user in following]
-        ids.append(g.user.id)
+        following = Follows.query.filter_by(user_following_id = g.user.id).all() # getting records of all users you follow using through table
+        ids = [followed_user.user_being_followed_id for followed_user in following] # getting only the user ids of people you follow
+        ids.append(g.user.id) # adding your own tweets
 
         messages = (Message
                     .query
-                    .filter(Message.user_id.in_(ids))
+                    .filter(Message.user_id.in_(ids)) # filtering tweets to show followed and own tweets
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
