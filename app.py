@@ -32,7 +32,7 @@ connect_db(app)
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
     # ran before every single request, kind of like setup function when testing
-
+    g.csrf = CSRFProtectForm()
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY]) # user.id stored in here
 
@@ -113,9 +113,7 @@ def login():
 def logout():
     """Handle logout of user."""
 
-    form = CSRFProtectForm()
-
-    if form.validate_on_submit():
+    if g.csrf.validate_on_submit():
         do_logout()
     flash("Logout successful")
     return redirect("/login")
@@ -137,19 +135,17 @@ def list_users():
         users = User.query.all()
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
-    CSRF = CSRFProtectForm()
-    return render_template('users/index.html', users=users, form=CSRF)
+   
+    return render_template('users/index.html', users=users)
 
 
 @app.get('/users/<int:user_id>')
 def users_show(user_id):
     """Show user profile."""
 
-    CSRF = CSRFProtectForm()
-
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user, form=CSRF)
+    return render_template('users/show.html', user=user)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -161,8 +157,8 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    CSRF = CSRFProtectForm()
-    return render_template('users/following.html', user=user, form=CSRF)
+  
+    return render_template('users/following.html', user=user)
 
 
 @app.get('/users/<int:user_id>/followers')
@@ -174,8 +170,8 @@ def users_followers(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    CSRF = CSRFProtectForm()
-    return render_template('users/followers.html', user=user, form=CSRF)
+    
+    return render_template('users/followers.html', user=user)
 
 
 @app.post('/users/follow/<int:follow_id>')
@@ -333,9 +329,8 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-        CSRF = CSRFProtectForm()
 
-        return render_template('home.html', messages=messages, form=CSRF)
+        return render_template('home.html', messages=messages)
 
     else:
         return render_template('home-anon.html')
