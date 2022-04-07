@@ -354,13 +354,13 @@ def unlike_message(message_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    like = LikedBy.query.filter(user_id=g.user.id and message_id=message_id).one()
+    like = LikedBy.query.get((g.user.id, message_id))
 
     db.session.delete(like)
     db.session.commit()
 
     flash("Warble removed from likes!", "success")
-    return redirect(f"users/{g.user.id}/likes.html")
+    return redirect(f"/users/{g.user.id}/likes")
 
 
 ##############################################################################

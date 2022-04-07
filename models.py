@@ -116,7 +116,6 @@ class User(db.Model):
     def like_message(cls, user_id, message_id):
         """Like a message"""
 
-
         like = LikedBy(
             user_id=user_id,
             message_id=message_id

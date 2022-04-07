@@ -60,9 +60,15 @@
           <p>{{ msg.text }}</p>
         </div>
         <div>
+          {% if msg in g.user.likes %}
+          <form action="/messages/{{msg.id}}/unlike" method="POST">
+            <button id="like-button" type="submit">Unlike</button>
+          </form>
+          {% endif %} {% if msg not in g.user.likes %}
           <form action="/messages/{{msg.id}}/like" method="POST">
             <button id="like-button" type="submit">Like</button>
           </form>
+          {% endif %}
         </div>
       </li>
       {% endfor %}
