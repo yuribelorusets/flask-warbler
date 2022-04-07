@@ -7,11 +7,7 @@
       <a href="/messages/{{ message.id }}" class="message-link" />
 
       <a href="/users/{{ user.id }}">
-        <img
-          src="{{ user.image_url }}"
-          alt="user image"
-          class="timeline-image"
-        />
+        <img src="{{ user.image_url }}" alt="user image" class="timeline-image" />
       </a>
 
       <div class="message-area">
@@ -22,14 +18,14 @@
         <p>{{ message.text }}</p>
       </div>
 
-      <div>
+      <div id="home-like">
         {% if message in g.user.likes %}
         <form action="/messages/{{message.id}}/unlike" method="POST">
-          <button id="like-button" type="submit">Unlike</button>
+          <button id="like-button" type="submit"><i class="fas fa-star"></i></button>
         </form>
         {% endif %} {% if message not in g.user.likes %}
         <form action="/messages/{{message.id}}/like" method="POST">
-          <button id="like-button" type="submit">Like</button>
+          <button id="like-button" type="submit"><i class="far fa-star"></i></button>
         </form>
         {% endif %}
       </div>

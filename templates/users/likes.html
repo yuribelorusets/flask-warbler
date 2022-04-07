@@ -19,9 +19,12 @@
                 </span>
                 <p>{{ message.text }}</p>
             </div>
-            <form action="/messages/{{message.id}}/unlike" method="POST">
-                <button id="like-button" type="submit">Unlike</button>
-            </form>
+            <div id="home-like">
+                <form action="/messages/{{message.id}}/unlike" method="POST">
+                    <button id="like-button" type="submit"><i class="fas fa-star"></i></button>
+                </form>
+            </div>
+
         </li>
 
         {% endfor %}

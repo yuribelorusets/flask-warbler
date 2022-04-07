@@ -7,11 +7,7 @@
           <img src="{{ g.user.header_image_url }}" alt="" class="card-hero" />
         </div>
         <a href="/users/{{ g.user.id }}" class="card-link">
-          <img
-            src="{{ g.user.image_url }}"
-            alt="Image for {{ g.user.username }}"
-            class="card-image"
-          />
+          <img src="{{ g.user.image_url }}" alt="Image for {{ g.user.username }}" class="card-image" />
           <p>@{{ g.user.username }}</p>
         </a>
         <ul class="user-stats nav nav-pills">
@@ -54,19 +50,17 @@
         </a>
         <div class="message-area">
           <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
-          <span class="text-muted"
-            >{{ msg.timestamp.strftime('%d %B %Y') }}</span
-          >
+          <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
           <p>{{ msg.text }}</p>
         </div>
-        <div>
+        <div id="home-like">
           {% if msg in g.user.likes %}
           <form action="/messages/{{msg.id}}/unlike" method="POST">
-            <button id="like-button" type="submit">Unlike</button>
+            <button id="like-button" type="submit"><i class="fas fa-star"></i></button>
           </form>
           {% endif %} {% if msg not in g.user.likes %}
           <form action="/messages/{{msg.id}}/like" method="POST">
-            <button id="like-button" type="submit">Like</button>
+            <button id="like-button" type="submit"><i class="far fa-star"></i></button>
           </form>
           {% endif %}
         </div>
