@@ -25,6 +25,7 @@ from app import app, db, g, CURR_USER_KEY
 app.config['WTF_CSRF_ENABLED'] = False
 app.config['TESTING'] = True
 
+
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
 # and create fresh new clean test data
@@ -98,27 +99,32 @@ class UserModelTestCase(TestCase):
 
     def test_is_following(self):
         """Testing if following a user works"""
-
         with self.client as client:
-
-
-            # self.assertEqual(response.status_code, 200)
-            # html = response.get_data(as_text=True)
-            # self.assertIn(f"{self.user1.username}", html)
-
-            self.assertFalse(self.user1.is_following(self.user2.id)) # check if not following
-
+            with client.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.user1.id
+            
+                
+            curr_user = User.query.get(self.user1.id)
+           
             url = f'/users/follow/{self.id2}'
             response = client.post(url, follow_redirects = True)
             self.assertEqual(response.status_code, 200)
 
             html = response.get_data(as_text=True)
             self.assertIn("<!-- following page -->", html)
-            self.assertIn(self.user2.id, self.user1.following)
+            self.assertTrue(curr_user.is_following(self.user2))
 
-    # def test_is_not_following(self):
+    def test_is_not_following(self):
+        with self.client as client:
+            with client.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.user1.id
+            curr_user = User.query.get(self.user1.id)
+            self.assertFalse(curr_user.is_following(self.user2)) # check if not following
 
-
+    def test_is_followed_by(self):
+        with self.client as client:
+            with client.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.user1.id
 
 
 

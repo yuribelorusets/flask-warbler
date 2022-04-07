@@ -133,7 +133,6 @@ def list_users():
 
     Can take a 'q' param in querystring to search by that username.
     """
-
     search = request.args.get('q')
 
     if not search:
