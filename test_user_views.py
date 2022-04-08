@@ -164,6 +164,7 @@ class UserViewTestCase(TestCase):
 
 
 
+
     # def test_is_following(self):
     #     """Testing if following a user works"""
     #     with self.client as client:
