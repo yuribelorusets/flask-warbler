@@ -1,4 +1,5 @@
 
+
 # Warbler
 
 Warbler is a full-stack Twitter clone application. Users can create an account, search for and follow/unfollow other users, like/dislike messages from other users, and perform CRUD operations on their own messages. Authorization is required to access the main contents of the app.
@@ -44,3 +45,4 @@ _This application was created for an exercise as part of the curriculum by [Rith
 3) Add CSRF form to Jinja HTML template for all post requests
 
 ![Code snippet - template](./static/screenshots/CSRF_template.png "CSRF template")
+
