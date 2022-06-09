@@ -21,7 +21,7 @@ os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
 # Now we can import app
 
-from app import app, db, g, CURR_USER_KEY
+from app import app, db, CURR_USER_KEY
 app.config['WTF_CSRF_ENABLED'] = False
 app.config['TESTING'] = True
 
@@ -97,119 +97,94 @@ class UserModelTestCase(TestCase):
         self.assertEqual(user1.__repr__(), f"<User #{user1.id}: {user1.username}, {user1.email}>")
 
 
-    def test_is_following(self):
-        """Testing if following a user works"""
-        with self.client as client:
-            with client.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
+    def test_invalid_user_signup(self):
+        """Testing invalid user signup"""
 
-            url = f'/users/follow/{self.id2}'
-            response = client.post(url, follow_redirects = True)
-            self.assertEqual(response.status_code, 200)
+        test_user = User.signup(None,
+                    "hello",
+                    "hello@hello.com",
+                    None)
 
-            # make sure all other stuff is done below the response
+        test_user.id = 12234
 
-            curr_user = User.query.get(self.id)
-            html = response.get_data(as_text=True)
-            self.assertIn("<!-- following page -->", html)
-            user_two = User.query.get(self.id2)
-            self.assertTrue(curr_user.is_following(user_two))
+        with self.assertRaises(IntegrityError) as context:
+            db.session.commit()
 
 
-    def test_is_not_following(self):
-        with self.client as client:
-            with client.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-            curr_user = User.query.get(self.id)
-            user_two = User.query.get(self.id2)
-            self.assertFalse(curr_user.is_following(user_two)) # check if not following
+    def test_valid_user_signup(self):
+        """Testing valid user signup"""
 
+        test_user = User.signup("testing",
+                    "hello@hello.com",
+                    "hello",
+                    None)
+
+        test_user.id = 12234
+        db.session.commit()
+
+        new_user = User.query.get(12234)
+
+        self.assertEqual(test_user.username, new_user.username )
+        self.assertEqual(test_user.email, new_user.email )
+        self.assertTrue(new_user.password.__contains__('$2b'))
+
+
+    def test_valid_user_authentication(self):
+        """Tests for valid user authentication"""
+
+        test_user = User.signup("testing",
+                    "hello@hello.com",
+                    "hello",
+                    None)
+
+        test_user.id = 12234
+        db.session.commit()
+
+        new_user = User.query.get(12234)
+        auth_user = User.authenticate("testing", "hello")
+
+        self.assertEqual(new_user, auth_user)
+
+
+    def test_invalid_user_authentication(self):
+        """Tests for valid user authentication"""
+
+        test_user = User.signup("testing",
+                    "hello@hello.com",
+                    "hello",
+                    None)
+
+        db.session.commit()
+
+        auth_user = User.authenticate("testing", "wrong_password")
+
+        self.assertFalse(auth_user)
 
     def test_is_followed_by(self):
-        """Check to see if a user is being followed by a different user"""
-        with self.client as client:
-            with client.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
+        """Test to see if user is followed by another user"""
 
-            url = f'/users/follow/{self.id2}'
-            response = client.post(url, follow_redirects = True)
+        user1 = User.query.get(self.id)
+        user2 = User.query.get(self.id2)
 
-            self.assertEqual(response.status_code, 200)
-            curr_user = User.query.get(self.id)
-            user_two = User.query.get(self.id2)
-            self.assertTrue(user_two.is_followed_by(curr_user))
+        user1.followers.append(user2)
 
+        db.session.commit()
 
-    def test_user_signup_success(self):
-        """Check to see if a user successfully signs up"""
-        with self.client as client:
-            with client.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
+        self.assertIn(user2, user1.followers)
+        self.assertTrue(user1.is_followed_by(user2))
 
-            url = '/signup'
-            response = client.post(url, follow_redirects = True,
-                                        data = {"username": "new_user",
-                                        "password": "test_password",
-                                        "email": "newtest1@test.com",
-                                        "image_url": "newtest.com"})
-            self.assertEqual(response.status_code, 200)
+    def test_is_following(self):
+        """Test to see if user is following another user"""
 
-            new_user = User.query.filter_by(email = "newtest1@test.com").one()
-            self.assertIn(new_user, User.query.all())
+        user1 = User.query.get(self.id)
+        user2 = User.query.get(self.id2)
 
-    # def test_user_signup_fail(self):
-    #     """Check to see if a user unsuccessfully signs up"""
-    #     with self.client as client:
-    #         with client.session_transaction() as change_session:
-    #             change_session[CURR_USER_KEY] = self.id
+        user1.following.append(user2)
 
-    #         url = '/signup'
-    #         try:
-    #             client.post(url, follow_redirects = True,
-    #                                         data = {"username": "test_user",
-    #                                                 "password": "test_password",
-    #                                                 "email": "testsdfgsdfg2@test.com",
-    #                                                 "image_url": "newtest.com"})
-    #         except IntegrityError:
-    #             self.assertNotIn(User(
-    #                 username="test_user",
-    #                 password="test_password",
-    #                 email="testsdfgsdfg2@test.com",
-    #                 image_url="newtest.com"
-    #                 ), User.query.all())
+        db.session.commit()
 
-
-
-    def test_authenticate_user_success(self):
-        """Tests to see if a user is authenticated"""
-        with self.client as client:
-            with client.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-
-            curr_user = User.query.get(self.id)
-            self.assertEquals(curr_user, curr_user.authenticate(username="test_user",
-                                                        password="test_password"))
-
-
-    def test_authenticate_user_fail_username(self):
-        """Tests to see if a user is not authenticated with wrong username"""
-        with self.client as client:
-            with client.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-
-            curr_user = User.query.get(self.id)
-            self.assertFalse(curr_user.authenticate(username="test", password="test_password"))
-
-
-    def test_authenticate_user_fail_password(self):
-        """Tests to see if a user is not authenticated with wrong password"""
-        with self.client as client:
-            with client.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-
-            curr_user = User.query.get(self.id)
-            self.assertFalse(curr_user.authenticate(username="test", password="test"))
-
+        self.assertIn(user2, user1.following)
+        self.assertTrue(user1.is_following(user2))
 
 
 

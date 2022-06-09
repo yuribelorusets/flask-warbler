@@ -1,34 +1,37 @@
-{% extends 'users/detail.html' %}
-{% block user_details %}
+{% extends 'users/detail.html' %} {% block user_details %}
 <div class="col-sm-6">
-    <ul class="list-group" id="messages">
+  <ul class="list-group" id="messages">
+    <!-- likes page -->
+    {% for message in user.likes %}
 
-        {% for message in user.likes %}
+    <li class="list-group-item">
+      <a href="/messages/{{ message.id }}" class="message-link" />
 
-        <li class="list-group-item">
-            <a href="/messages/{{ message.id }}" class="message-link" />
+      <a href="/users/{{ message.user_id }}">
+        <img
+          src="{{ message.user.image_url }}"
+          alt="user image"
+          class="timeline-image"
+        />
+      </a>
 
-            <a href="/users/{{ message.user_id }}">
-                <img src="{{ message.user.image_url }}" alt="user image" class="timeline-image">
-            </a>
+      <div class="message-area">
+        <a href="/users/{{ message.user.id }}">@{{ message.user.username }}</a>
+        <span class="text-muted">
+          {{ message.timestamp.strftime('%d %B %Y') }}
+        </span>
+        <p>{{ message.text }}</p>
+      </div>
+      <div id="home-like">
+        <form action="/messages/{{message.id}}/unlike" method="POST">
+          <button id="like-button" type="submit">
+            <i class="fas fa-star"></i>
+          </button>
+        </form>
+      </div>
+    </li>
 
-            <div class="message-area">
-                <a href="/users/{{ message.user.id }}">@{{ message.user.username }}</a>
-                <span class="text-muted">
-                    {{ message.timestamp.strftime('%d %B %Y') }}
-                </span>
-                <p>{{ message.text }}</p>
-            </div>
-            <div id="home-like">
-                <form action="/messages/{{message.id}}/unlike" method="POST">
-                    <button id="like-button" type="submit"><i class="fas fa-star"></i></button>
-                </form>
-            </div>
-
-        </li>
-
-        {% endfor %}
-
-    </ul>
+    {% endfor %}
+  </ul>
 </div>
 {% endblock %}

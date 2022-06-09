@@ -30,6 +30,8 @@ db.create_all()
 # Don't have WTForms use CSRF at all, since it's a pain to test
 
 app.config['WTF_CSRF_ENABLED'] = False
+app.config['TESTING'] = True
+app.config['DEBUG_TB_HOSTS'] = ['dont-show-debug-toolbar']
 
 
 class MessageViewTestCase(TestCase):
@@ -48,7 +50,18 @@ class MessageViewTestCase(TestCase):
                                     password="testuser",
                                     image_url=None)
 
+        self.msg = Message(text="yo what is up")
+
         db.session.commit()
+
+        self.id = self.testuser.id
+        self.msg_id = self.msg.id
+
+
+    def tearDown(self):
+        """Clean up fouled transactions."""
+
+        db.session.rollback()
 
     def test_add_message(self):
         """Can use add a message?"""
@@ -70,3 +83,32 @@ class MessageViewTestCase(TestCase):
 
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
+
+    def test_add_message_not_logged_in(self):
+        """Tests to see if a message can be added while logged in"""
+
+        with self.client as client:
+            url = "/messages/new"
+            response = client.get(url, follow_redirects=True)
+
+            self.assertEqual(response.status_code, 200)
+            html = response.get_data(as_text=True)
+
+            self.assertIn("Access unauthorized.", html)
+
+    # def test_delete_message(self):
+    #     """Test if a message can be deleted"""
+    #     with self.client as client:
+    #         with client.session_transaction() as sess:
+    #             sess[CURR_USER_KEY] = self.testuser.id
+
+    #         resp = client.post("/messages/new", data={"text": "Hello"})
+
+    #         url = f"/messages/{self.msg_id}/delete"
+    #         response = client.post(url, follow_redirects=True)
+
+    #         msg = Message.query.one()
+
+    #         self.assertIn(msg, user.messages)
+
+
